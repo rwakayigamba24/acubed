@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Login</title>
+    <style>
+      .error { color: red; }
+      .success { color: green; }
+    </style>
+  </head>
+  <body>
+    <h1>Login</h1>
+
+    <!-- ✅ Show success message if user just registered -->
+    <% if (messages?.success_msg) { %>
+      <ul class="success">
+        <li><%= messages.success_msg %></li>
+      </ul>
+    <% } %>
+
+    <!-- ✅ Show error message if login fails -->
+    <% if (messages?.error) { %>
+      <ul class="error">
+        <li><%= messages.error %></li>
+      </ul>
+    <% } %>
+
+    <form action="/users/login" method="POST">
+      <div>
+        <input type="text" id="emailOrPhone" name="emailOrPhone" placeholder="Email or Phone Number" required>
+      </div>
+      <div>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+      </div>
+      <div>
+        <input type="submit" value="Login">
+      </div>
+           
+      <a href="/users/register">Don't have an account? Sign Up</a>
+  
+    </form>
+    <div>
+      <a href="/auth/google">
+        <button>Login with Google</button>
+      </a>
+    </div> 
+  </body>
+</html>
