@@ -1,4 +1,6 @@
+/*
 require("dotenv").config();
+
 
 const { Pool } = require("pg");
 
@@ -12,6 +14,24 @@ const pool = new Pool({
 });
 
 module.exports = { pool };
+*/
+require("dotenv").config();
+const { Sequelize } = require("sequelize");
+
+const sequelize = new sequelize(
+  process.env.DB_DATABASE,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: "postgres",
+    port: process.env.DB_PORT,
+    logging: false, //later make it true 2 check the queryyyy displayyy
+  }
+);
+
+module.exports = sequelise;
+
 
 
 

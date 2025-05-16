@@ -3,6 +3,7 @@ const { pool } = require("../config/db");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const { generateToken } = require("./jwtcontroller");
+const User = require("../models/User");
 
 // Registration handler
 exports.register = async (req, res) => {
@@ -35,6 +36,8 @@ exports.register = async (req, res) => {
           `SELECT * FROM users WHERE ${queryField} = $1`,
           [emailOrPhone]
         );
+
+        const saveUser = User.
     
         if (checkUser.rows.length > 0) {
           // errors.push({ message: `${isEmail ? "Email" : "Phone number"} already exists` });
