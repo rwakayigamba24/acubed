@@ -8,6 +8,9 @@ const User = require("../models/User");
 // Registration handler
 exports.register = async (req, res) => {
   let { firstname, lastname, emailOrPhone, password, password2 } = req.body;
+
+  console.log(emailOrPhone);
+  
   const isEmail = emailOrPhone.includes("@");
 
   let errors = [];
@@ -17,7 +20,9 @@ exports.register = async (req, res) => {
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ message: "Password should be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password should be at least 6 characters" });
   }
 
   if (password !== password2) {
@@ -31,45 +36,88 @@ exports.register = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const queryField = isEmail ? "email" : "phone";
-       // Check if user already exists
-        const checkUser = await pool.query(
-          `SELECT * FROM users WHERE ${queryField} = $1`,
-          [emailOrPhone]
-        );
+    //    // Check if user already exists
+    //     const checkUser = await pool.query(
+    //       `SELECT * FROM users WHERE ${queryField} = $1`,
+    //       [emailOrPhone]
+    //     );
 
-        const saveUser = User.
-    
-        if (checkUser.rows.length > 0) {
-          // errors.push({ message: `${isEmail ? "Email" : "Phone number"} already exists` });
-          // return res.render("register", { errors });
+    const checkUser =
+      queryField === "email"
+        ? await User.findOne({
+            where: {
+              email: emailOrPhone,
+            },
+          })
+        : await User.findOne({
+            where: {
+              phone: emailOrPhone,
+            },
+          });
 
-          return res.status(400).json({ message: `${isEmail ? "Email" : "Phone number"} already exists` })
-        }
-    
-        // Insert user
-        const insertQuery = isEmail
-          ? `INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4)`
-          : `INSERT INTO users (firstname, lastname, phone, password) VALUES ($1, $2, $3, $4)`;
-    
-          await pool.query(insertQuery, [firstname, lastname, emailOrPhone, hashedPassword]);
-    
-         const registeredUser = await pool.query(
-          `SELECT * FROM users WHERE ${queryField} = $1`,
-          [emailOrPhone]
-        );
+    // if (checkUser.rows.length > 0) {
+    //   // errors.push({ message: `${isEmail ? "Email" : "Phone number"} already exists` });
+    //   // return res.render("register", { errors });
 
-        req.flash("success_msg", "You are now registered, please log in");
-        // res.redirect("/users/login");
-        return res.status(201).json({
-          message: "user register successfully",
-          registeredUser: registeredUser.rows[0]
-        })
-    
-      } catch (err) {
-        console.error(err);
-        res.send("An error occurred");
+    //   return res
+    //     .status(400)
+    //     .json({
+    //       message: `${isEmail ? "Email" : "Phone number"} already exists`,
+    //     });
+    // }
+
+    if (checkUser != null) {
+          return res
+        .status(400)
+        .json({
+          message: `${isEmail ? "Email" : "Phone number"} already exists`,
+        });
       }
-    };
+    
+
+    // Insert user
+    // const insertQuery = isEmail
+    //   ? `INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4)`
+    //   : `INSERT INTO users (firstname, lastname, phone, password) VALUES ($1, $2, $3, $4)`;
+
+    //   await pool.query(insertQuery, [firstname, lastname, emailOrPhone, hashedPassword]);
+
+    const saveUser = isEmail
+      ? await User.create({
+          firstname,
+          lastname,
+          email: emailOrPhone,
+          password: hashedPassword,
+        })
+      : await User.create({
+          firstname,
+          lastname,
+          phone: emailOrPhone,
+          password: hashedPassword,
+        });
+
+    // const registeredUser = await pool.query(
+    //   `SELECT * FROM users WHERE ${queryField} = $1`,
+    //   [emailOrPhone]
+    // );
+
+    req.flash("success_msg", "You are now registered, please log in");
+    // res.redirect("/users/login");
+    // return res.status(201).json({
+    //   message: "user register successfully",
+    //   registeredUser: registeredUser.rows[0],
+    // });
+
+    return res.status(201).json({
+      message: "user register successfully",
+      registeredUser: saveUser,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("An error occurred");
+  }
+};
 
 // Login handler with debug log
 // exports.login = (req, res, next) => {
@@ -79,31 +127,36 @@ exports.register = async (req, res) => {
 //     successRedirect: "/users/dashboard",
 //     failureRedirect: "/users/login",
 //     failureFlash: true,
-//   })(req, res, next);  
+//   })(req, res, next);
 // };
 
 exports.login = (req, res, next) => {
-  console.log("Login form data:", req.body);  // Debug log
+  console.log("Login form data:", req.body); // Debug log
 
   passport.authenticate("local", (err, user, info) => {
     if (err) {
-      return res.status(500).json({message: "An error occurred.", error: err });
+      console.log(err);
+      
+      return res
+        .status(500)
+        .json({ message: "An error occurred.", error: err });
     }
     if (!user) {
-      return res.status(401).json({message: info.message || "Authentication failed." });
+      return res
+        .status(401)
+        .json({ message: info.message || "Authentication failed." });
     }
-
-    
 
     req.logIn(user, (err) => {
       if (err) {
-        return res.status(500).json({message: "Login failed.", error: err });
+        return res.status(500).json({ message: "Login failed.", error: err });
       }
-      console.log("user",user)
-const token= generateToken(user);
+      console.log("user", user);
+      const token = generateToken(user);
 
-  
-      return res.status(200).json({message: "Login successful.",token, user });
+      return res
+        .status(200)
+        .json({ message: "Login successful.", token, user });
     });
   })(req, res, next);
 };
